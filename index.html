@@ -113,6 +113,20 @@
             border-left-color: var(--accent);
         }
 
+        .sidebar-footer {
+            padding: 15px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            text-align: center;
+            font-size: 0.75rem;
+            color: var(--accent);
+        }
+
+        .sidebar-footer small {
+            display: block;
+            color: #d1d5db;
+            margin-top: 3px;
+        }
+
         /* Main Content Styling */
         .main-content {
             flex: 1;
@@ -369,6 +383,20 @@
         .boy-pill { background-color: rgba(0, 123, 255, 0.1); color: var(--boy-color); font-weight: bold; padding: 2px 8px; border-radius: 12px; }
         .girl-pill { background-color: rgba(232, 62, 140, 0.1); color: var(--girl-color); font-weight: bold; padding: 2px 8px; border-radius: 12px; }
 
+        /* Page Footer */
+        .page-footer {
+            text-align: center;
+            padding: 20px 0 10px 0;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            border-top: 1px solid var(--border);
+            margin-top: 30px;
+        }
+
+        .page-footer strong {
+            color: var(--primary);
+        }
+
         @media print {
             body * { visibility: hidden; }
             .report-card-container, .report-card-container * { visibility: visible; }
@@ -425,6 +453,11 @@
             <li onclick="switchTab('reports', this)"><a><i class="fa-solid fa-file-invoice"></i> Report Cards</a></li>
             <li onclick="switchTab('announcements', this)"><a><i class="fa-solid fa-bullhorn"></i> Announcements</a></li>
         </ul>
+
+        <div class="sidebar-footer">
+            <strong>Powered by: Hadi Salifu Aminu</strong>
+            <small>Contact: 0542428519</small>
+        </div>
     </aside>
 
     <!-- Main Content Workspace -->
@@ -732,6 +765,11 @@
                     <div id="noticeList" style="margin-top: 15px;"></div>
                 </div>
             </div>
+
+            <!-- PAGE FOOTER AT BOTTOM -->
+            <footer class="page-footer no-print">
+                <p>Powered by: <strong>Hadi Salifu Aminu</strong> | Contact: <strong>0542428519</strong></p>
+            </footer>
 
         </div>
     </div>
