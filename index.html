@@ -86,6 +86,7 @@
             list-style: none;
             padding: 20px 0;
             flex: 1;
+            overflow-y: auto;
         }
 
         .nav-links li a {
@@ -261,6 +262,7 @@
             display: flex;
             align-items: center;
             gap: 10px;
+            flex-wrap: wrap;
         }
 
         .btn {
@@ -281,6 +283,7 @@
         .btn:hover { opacity: 0.9; }
         .btn-edit { background-color: var(--accent); color: #000; padding: 4px 10px; font-size: 0.8rem; }
         .btn-delete { background-color: var(--danger); color: #fff; padding: 4px 10px; font-size: 0.8rem; }
+        .btn-download { background-color: var(--primary); color: #fff; padding: 4px 10px; font-size: 0.8rem; }
 
         .table-responsive {
             width: 100%;
@@ -450,6 +453,7 @@
             <li onclick="switchTab('teachers', this)"><a><i class="fa-solid fa-chalkboard-user"></i> Teachers</a></li>
             <li onclick="switchTab('attendance', this)"><a><i class="fa-solid fa-clipboard-user"></i> Daily Attendance</a></li>
             <li onclick="switchTab('exams', this)"><a><i class="fa-solid fa-pen-to-square"></i> Exams & Marks</a></li>
+            <li onclick="switchTab('exambank', this)"><a><i class="fa-solid fa-folder-open"></i> Exams Bank</a></li>
             <li onclick="switchTab('reports', this)"><a><i class="fa-solid fa-file-invoice"></i> Report Cards</a></li>
             <li onclick="switchTab('announcements', this)"><a><i class="fa-solid fa-bullhorn"></i> Announcements</a></li>
         </ul>
@@ -678,6 +682,48 @@
                 </div>
             </div>
 
+            <!-- EXAMS QUESTION BANK TAB -->
+            <div id="exambank" class="tab-content">
+                <div class="panel">
+                    <div class="panel-header">
+                        <h2>Exam Questions & Resources Bank</h2>
+                        <div class="filter-group">
+                            <label style="margin:0; font-weight: 600;">Filter Class:</label>
+                            <select id="filterBankClass" style="margin:0; width: auto;" onchange="renderExamBank()">
+                                <option value="ALL">All Classes</option>
+                                <option value="KG 1">KG 1</option>
+                                <option value="KG 2">KG 2</option>
+                                <option value="Basic 1">Basic 1</option>
+                                <option value="Basic 2">Basic 2</option>
+                                <option value="Basic 3">Basic 3</option>
+                                <option value="Basic 4">Basic 4</option>
+                                <option value="Basic 5">Basic 5</option>
+                                <option value="Basic 6">Basic 6</option>
+                            </select>
+                            <button class="btn" onclick="openModal('bankModal')"><i class="fa-solid fa-file-arrow-up"></i> Upload Exam Paper</button>
+                        </div>
+                    </div>
+                    <div class="table-responsive">
+                        <table id="examBankTable">
+                            <thead>
+                                <tr>
+                                    <th>Title / Description</th>
+                                    <th>Class</th>
+                                    <th>Subject</th>
+                                    <th>Term</th>
+                                    <th>Uploaded By</th>
+                                    <th>File Name</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="examBankTableBody">
+                                <tr><td colspan="7" style="text-align: center;">No exam papers uploaded yet.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
             <!-- REPORTS TAB -->
             <div id="reports" class="tab-content">
                 <div class="panel no-print">
@@ -867,6 +913,53 @@
         </div>
     </div>
 
+    <!-- MODAL: UPLOAD EXAM QUESTION PAPER -->
+    <div id="bankModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Upload Exam Question Paper</h3>
+                <span class="close-btn" onclick="closeModal('bankModal')">&times;</span>
+            </div>
+            <form onsubmit="uploadExamPaper(event)">
+                <label>Paper Title / Description</label>
+                <input type="text" id="paperTitle" required placeholder="e.g. End of Term 1 Mathematics Exam">
+                <label>Class Level</label>
+                <select id="paperClass">
+                    <option>KG 1</option>
+                    <option>KG 2</option>
+                    <option>Basic 1</option>
+                    <option>Basic 2</option>
+                    <option>Basic 3</option>
+                    <option>Basic 4</option>
+                    <option>Basic 5</option>
+                    <option>Basic 6</option>
+                </select>
+                <label>Subject</label>
+                <select id="paperSubject">
+                    <option>Mathematics</option>
+                    <option>English Language</option>
+                    <option>Natural Science</option>
+                    <option>Social Studies</option>
+                    <option>Religious & Moral Education</option>
+                    <option>Ghanaian Language</option>
+                    <option>Creative Arts</option>
+                    <option>Computing</option>
+                </select>
+                <label>Academic Term</label>
+                <select id="paperTerm">
+                    <option>Term 1 - 2026</option>
+                    <option>Term 2 - 2026</option>
+                    <option>Term 3 - 2026</option>
+                </select>
+                <label>Teacher's Name</label>
+                <input type="text" id="paperTeacher" required placeholder="Teacher Name">
+                <label>Select Document (Word, PDF, Image)</label>
+                <input type="file" id="paperFile" required accept=".pdf,.doc,.docx,.jpg,.png,.jpeg">
+                <button type="submit" id="btnUploadPaper" class="btn" style="width: 100%; margin-top: 10px;">Upload Paper</button>
+            </form>
+        </div>
+    </div>
+
     <!-- FIREBASE LIBRARIES -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
@@ -888,6 +981,7 @@
         let globalStudents = {};
         let globalExams = {};
         let globalAttendance = {};
+        let globalExamBank = {};
 
         const ALL_CLASSES = ["KG 1", "KG 2", "Basic 1", "Basic 2", "Basic 3", "Basic 4", "Basic 5", "Basic 6"];
 
@@ -906,6 +1000,7 @@
                 'teachers': 'Teachers Directory',
                 'attendance': 'Class Attendance',
                 'exams': 'Exams & Marks',
+                'exambank': 'Exam Questions Bank',
                 'reports': 'Student Report Cards',
                 'announcements': 'School Announcements'
             };
@@ -956,6 +1051,11 @@
             globalExams = snapshot.val() || {};
             renderExams();
             generateReportCard();
+        });
+
+        db.ref('exambank').on('value', (snapshot) => {
+            globalExamBank = snapshot.val() || {};
+            renderExamBank();
         });
 
         db.ref('attendance').on('value', (snapshot) => {
@@ -1084,6 +1184,38 @@
                             </td>
                         </tr>`;
                 }
+            }
+        }
+
+        // RENDER EXAM BANK PAPERS
+        function renderExamBank() {
+            const selectedClass = document.getElementById('filterBankClass').value;
+            const tbody = document.getElementById('examBankTableBody');
+            tbody.innerHTML = '';
+
+            let count = 0;
+            for (let key in globalExamBank) {
+                const item = globalExamBank[key];
+                if (selectedClass === 'ALL' || item.paperClass === selectedClass) {
+                    count++;
+                    tbody.innerHTML += `
+                        <tr>
+                            <td><strong>${item.title}</strong></td>
+                            <td>${item.paperClass}</td>
+                            <td>${item.subject}</td>
+                            <td>${item.term}</td>
+                            <td>${item.teacher}</td>
+                            <td><i class="fa-solid fa-file-lines"></i> ${item.fileName}</td>
+                            <td>
+                                <a href="${item.fileData}" download="${item.fileName}" class="btn btn-download"><i class="fa-solid fa-download"></i> Download</a>
+                                <button class="btn btn-delete" onclick="deleteFirebaseItem('exambank/${key}')"><i class="fa-solid fa-trash"></i></button>
+                            </td>
+                        </tr>`;
+                }
+            }
+
+            if (count === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center;">No exam documents found for the selected criteria.</td></tr>';
             }
         }
 
@@ -1267,6 +1399,51 @@
 
             closeModal('examModal');
             e.target.reset();
+        }
+
+        function uploadExamPaper(e) {
+            e.preventDefault();
+            const fileInput = document.getElementById('paperFile');
+            const file = fileInput.files[0];
+
+            if (!file) return alert('Please select a file to upload');
+
+            // Limit file size to ~3MB to ensure light storage in Firebase RTDB
+            if (file.size > 3 * 1024 * 1024) {
+                return alert('File size is too large. Please select a file smaller than 3MB.');
+            }
+
+            const btn = document.getElementById('btnUploadPaper');
+            btn.innerText = "Uploading...";
+            btn.disabled = true;
+
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                const base64Data = evt.target.result;
+
+                db.ref('exambank').push({
+                    title: document.getElementById('paperTitle').value,
+                    paperClass: document.getElementById('paperClass').value,
+                    subject: document.getElementById('paperSubject').value,
+                    term: document.getElementById('paperTerm').value,
+                    teacher: document.getElementById('paperTeacher').value,
+                    fileName: file.name,
+                    fileData: base64Data,
+                    timestamp: firebase.database.ServerValue.TIMESTAMP
+                }, (error) => {
+                    btn.innerText = "Upload Paper";
+                    btn.disabled = false;
+
+                    if (error) {
+                        alert("Failed to upload document. Please try again.");
+                    } else {
+                        closeModal('bankModal');
+                        e.target.reset();
+                    }
+                });
+            };
+
+            reader.readAsDataURL(file);
         }
 
         function addNotice(e) {
