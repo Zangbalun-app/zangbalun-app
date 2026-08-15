@@ -350,6 +350,117 @@
             color: var(--text-muted);
         }
 
+        /* COLORFUL TEACHER VERIFICATION INTERFACE */
+        .teacher-auth-portal {
+            max-width: 500px;
+            margin: 30px auto;
+            background: linear-gradient(135deg, #ffffff 0%, #f0f4f9 100%);
+            border-radius: 16px;
+            padding: 35px 30px;
+            box-shadow: 0 10px 25px rgba(12, 35, 64, 0.15);
+            border-top: 6px solid var(--accent);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .teacher-auth-portal::before {
+            content: '';
+            position: absolute;
+            top: -50px;
+            right: -50px;
+            width: 120px;
+            height: 120px;
+            background: linear-gradient(135deg, rgba(224, 169, 109, 0.3), rgba(31, 90, 54, 0.2));
+            border-radius: 50%;
+        }
+
+        .auth-badge-header {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .auth-badge-icon {
+            width: 70px;
+            height: 70px;
+            background: linear-gradient(135deg, var(--primary) 0%, #1F5A36 100%);
+            color: #E0A96D;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 15px auto;
+            font-size: 1.8rem;
+            box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+        }
+
+        .auth-badge-header h3 {
+            color: var(--primary);
+            font-size: 1.3rem;
+            margin-bottom: 6px;
+        }
+
+        .auth-badge-header p {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .auth-input-group {
+            position: relative;
+            margin-bottom: 15px;
+        }
+
+        .auth-input-group i {
+            position: absolute;
+            left: 14px;
+            top: 38px;
+            color: var(--primary);
+        }
+
+        .auth-input-group input {
+            padding-left: 40px;
+            border: 2px solid #E2E8F0;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .auth-input-group input:focus {
+            border-color: var(--secondary);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(31, 90, 54, 0.15);
+        }
+
+        .btn-auth-verify {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
+            font-weight: bold;
+            letter-spacing: 0.5px;
+            padding: 12px;
+            width: 100%;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .btn-auth-verify:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(0,0,0,0.2);
+        }
+
+        .teacher-session-status {
+            background: linear-gradient(135deg, #e6f4ea 0%, #c8e6c9 100%);
+            border-left: 5px solid var(--secondary);
+            padding: 12px 18px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            color: #1b5e20;
+            font-size: 0.9rem;
+        }
+
         /* Printable Report Card Sheet */
         .report-card-container {
             background: #fff;
@@ -385,6 +496,18 @@
         /* Gender Badges */
         .boy-pill { background-color: rgba(0, 123, 255, 0.1); color: var(--boy-color); font-weight: bold; padding: 2px 8px; border-radius: 12px; }
         .girl-pill { background-color: rgba(232, 62, 140, 0.1); color: var(--girl-color); font-weight: bold; padding: 2px 8px; border-radius: 12px; }
+
+        /* Parent Portal Search Box */
+        .parent-search-card {
+            max-width: 480px;
+            margin: 40px auto;
+            background: var(--white);
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            border-top: 5px solid var(--primary);
+            text-align: center;
+        }
 
         /* Page Footer */
         .page-footer {
@@ -456,6 +579,7 @@
             <li onclick="switchTab('exambank', this)"><a><i class="fa-solid fa-folder-open"></i> Exams Bank</a></li>
             <li onclick="switchTab('reports', this)"><a><i class="fa-solid fa-file-invoice"></i> Report Cards</a></li>
             <li onclick="switchTab('announcements', this)"><a><i class="fa-solid fa-bullhorn"></i> Announcements</a></li>
+            <li onclick="switchTab('parentportal', this)"><a><i class="fa-solid fa-users-viewfinder"></i> Parent Portal</a></li>
         </ul>
 
         <div class="sidebar-footer">
@@ -476,13 +600,46 @@
             <div class="user-profile">
                 <i class="fa-solid fa-circle-user fa-2x" style="color: var(--primary);"></i>
                 <div class="user-info">
-                    <span>Headteacher</span>
-                    <small>Administrator</small>
+                    <span id="activeUserRole">Visitor / Parent</span>
+                    <small id="activeUserSub">Authentication Required for Staff Data</small>
                 </div>
             </div>
         </header>
 
         <div class="content-area">
+
+            <!-- COLORFUL TEACHER AUTHENTICATION PORTAL (SHOWN UNTIL VERIFIED) -->
+            <div id="teacherAuthContainer" class="teacher-auth-portal" style="display: none;">
+                <div class="auth-badge-header">
+                    <div class="auth-badge-icon">
+                        <i class="fa-solid fa-user-shield"></i>
+                    </div>
+                    <h3>Teacher Authorization Required</h3>
+                    <p>Protected Data Area. Please enter your Staff ID and Phone Number to unlock student and teacher details.</p>
+                </div>
+                <form onsubmit="handlePortalVerification(event)">
+                    <div class="auth-input-group">
+                        <label style="font-weight: bold; color: var(--primary);">Staff ID</label>
+                        <i class="fa-solid fa-id-badge"></i>
+                        <input type="text" id="authPortalStaffId" placeholder="e.g. #T-01" required>
+                    </div>
+                    <div class="auth-input-group">
+                        <label style="font-weight: bold; color: var(--primary);">Registered Phone Number</label>
+                        <i class="fa-solid fa-phone"></i>
+                        <input type="text" id="authPortalPhone" placeholder="e.g. 020XXXXXXX" required>
+                    </div>
+                    <button type="submit" class="btn-auth-verify"><i class="fa-solid fa-key"></i> Verify & View Records</button>
+                </form>
+            </div>
+
+            <!-- ACTIVE TEACHER SESSION BANNER -->
+            <div id="teacherSessionBanner" class="teacher-session-status" style="display: none;">
+                <div>
+                    <i class="fa-solid fa-circle-check" style="margin-right: 8px;"></i>
+                    <strong>Authenticated Teacher:</strong> <span id="sessionTeacherName">---</span> (<span id="sessionTeacherId">---</span>)
+                </div>
+                <button class="btn btn-delete" style="padding: 3px 8px; font-size: 0.75rem;" onclick="logoutTeacherSession()"><i class="fa-solid fa-lock"></i> Lock Access</button>
+            </div>
 
             <!-- DASHBOARD TAB -->
             <div id="dashboard" class="tab-content active">
@@ -532,152 +689,158 @@
                                     <th>Total Students</th>
                                 </tr>
                             </thead>
-                            <tbody id="classSummaryTableBody">
-                                <!-- Populated automatically via JavaScript -->
-                            </tbody>
+                            <tbody id="classSummaryTableBody"></tbody>
                         </table>
                     </div>
                 </div>
             </div>
 
-            <!-- STUDENTS TAB (WITH CLASS FILTER) -->
+            <!-- STUDENTS TAB (PROTECTED: TEACHERS ONLY) -->
             <div id="students" class="tab-content">
-                <div class="panel">
-                    <div class="panel-header">
-                        <h2>Student Directory</h2>
-                        <div class="filter-group">
-                            <label style="margin:0; font-weight: 600;">Filter Class:</label>
-                            <select id="filterStudentClass" style="margin:0; width: auto;" onchange="renderStudents()">
-                                <option value="ALL">All Classes</option>
-                                <option value="KG 1">KG 1</option>
-                                <option value="KG 2">KG 2</option>
-                                <option value="Basic 1">Basic 1</option>
-                                <option value="Basic 2">Basic 2</option>
-                                <option value="Basic 3">Basic 3</option>
-                                <option value="Basic 4">Basic 4</option>
-                                <option value="Basic 5">Basic 5</option>
-                                <option value="Basic 6">Basic 6</option>
-                            </select>
-                            <button class="btn" onclick="openModal('studentModal')"><i class="fa-solid fa-plus"></i> Add Student</button>
+                <div id="studentsProtectedContent" style="display: none;">
+                    <div class="panel">
+                        <div class="panel-header">
+                            <h2>Student Directory</h2>
+                            <div class="filter-group">
+                                <label style="margin:0; font-weight: 600;">Filter Class:</label>
+                                <select id="filterStudentClass" style="margin:0; width: auto;" onchange="renderStudents()">
+                                    <option value="ALL">All Classes</option>
+                                    <option value="KG 1">KG 1</option>
+                                    <option value="KG 2">KG 2</option>
+                                    <option value="Basic 1">Basic 1</option>
+                                    <option value="Basic 2">Basic 2</option>
+                                    <option value="Basic 3">Basic 3</option>
+                                    <option value="Basic 4">Basic 4</option>
+                                    <option value="Basic 5">Basic 5</option>
+                                    <option value="Basic 6">Basic 6</option>
+                                </select>
+                                <button class="btn" onclick="openModal('studentModal')"><i class="fa-solid fa-plus"></i> Add Student</button>
+                            </div>
                         </div>
-                    </div>
-                    <div class="table-responsive">
-                        <table id="studentTable">
-                            <thead>
-                                <tr>
-                                    <th>ID</th>
-                                    <th>Name</th>
-                                    <th>Class</th>
-                                    <th>Gender</th>
-                                    <th>Guardian Contact</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody></tbody>
-                        </table>
+                        <div class="table-responsive">
+                            <table id="studentTable">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Name</th>
+                                        <th>Class</th>
+                                        <th>Gender</th>
+                                        <th>Guardian Contact</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <!-- TEACHERS TAB -->
+            <!-- TEACHERS TAB (PROTECTED: TEACHERS ONLY) -->
             <div id="teachers" class="tab-content">
-                <div class="panel">
-                    <div class="panel-header">
-                        <h2>Teaching Staff</h2>
-                        <button class="btn" onclick="openModal('teacherModal')"><i class="fa-solid fa-user-plus"></i> Add Teacher</button>
-                    </div>
-                    <div class="table-responsive">
-                        <table id="teacherTable">
-                            <thead>
-                                <tr>
-                                    <th>Staff ID</th>
-                                    <th>Name</th>
-                                    <th>Class Assigned</th>
-                                    <th>Contact</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody></tbody>
-                        </table>
+                <div id="teachersProtectedContent" style="display: none;">
+                    <div class="panel">
+                        <div class="panel-header">
+                            <h2>Teaching Staff</h2>
+                            <button class="btn" onclick="openModal('teacherModal')"><i class="fa-solid fa-user-plus"></i> Add Teacher</button>
+                        </div>
+                        <div class="table-responsive">
+                            <table id="teacherTable">
+                                <thead>
+                                    <tr>
+                                        <th>Staff ID</th>
+                                        <th>Name</th>
+                                        <th>Class Assigned</th>
+                                        <th>Contact</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <!-- DAILY ATTENDANCE TAB -->
+            <!-- DAILY ATTENDANCE TAB (PROTECTED: TEACHERS ONLY) -->
             <div id="attendance" class="tab-content">
-                <div class="panel">
-                    <div class="panel-header">
-                        <h2>Mark Class Attendance</h2>
-                        <div class="filter-group">
-                            <input type="date" id="attnDate" style="margin:0; width: auto;" onchange="loadClassAttendance()">
-                            <select id="attnClassSelect" style="margin:0; width: auto;" onchange="loadClassAttendance()">
-                                <option value="KG 1">KG 1</option>
-                                <option value="KG 2">KG 2</option>
-                                <option value="Basic 1">Basic 1</option>
-                                <option value="Basic 2">Basic 2</option>
-                                <option value="Basic 3">Basic 3</option>
-                                <option value="Basic 4">Basic 4</option>
-                                <option value="Basic 5">Basic 5</option>
-                                <option value="Basic 6">Basic 6</option>
-                            </select>
+                <div id="attendanceProtectedContent" style="display: none;">
+                    <div class="panel">
+                        <div class="panel-header">
+                            <h2>Mark Class Attendance</h2>
+                            <div class="filter-group">
+                                <input type="date" id="attnDate" style="margin:0; width: auto;" onchange="loadClassAttendance()">
+                                <select id="attnClassSelect" style="margin:0; width: auto;" onchange="loadClassAttendance()">
+                                    <option value="KG 1">KG 1</option>
+                                    <option value="KG 2">KG 2</option>
+                                    <option value="Basic 1">Basic 1</option>
+                                    <option value="Basic 2">Basic 2</option>
+                                    <option value="Basic 3">Basic 3</option>
+                                    <option value="Basic 4">Basic 4</option>
+                                    <option value="Basic 5">Basic 5</option>
+                                    <option value="Basic 6">Basic 6</option>
+                                </select>
+                            </div>
                         </div>
-                    </div>
-                    <div class="table-responsive">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Student ID</th>
-                                    <th>Name</th>
-                                    <th>Class</th>
-                                    <th>Status</th>
-                                    <th>Action</th>
-                                </tr>
-                            </thead>
-                            <tbody id="attendanceTableBody">
-                                <tr><td colspan="5" style="text-align: center;">Select a class to mark attendance</td></tr>
-                            </tbody>
-                        </table>
+                        <div class="table-responsive">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Student ID</th>
+                                        <th>Name</th>
+                                        <th>Class</th>
+                                        <th>Status</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="attendanceTableBody">
+                                    <tr><td colspan="5" style="text-align: center;">Select a class to mark attendance</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <!-- EXAMS TAB (WITH CLASS FILTER) -->
+            <!-- EXAMS TAB (PROTECTED: TEACHERS ONLY) -->
             <div id="exams" class="tab-content">
-                <div class="panel">
-                    <div class="panel-header">
-                        <h2>Record Examination Scores</h2>
-                        <div class="filter-group">
-                            <label style="margin:0; font-weight: 600;">Filter Class:</label>
-                            <select id="filterExamClass" style="margin:0; width: auto;" onchange="renderExams()">
-                                <option value="ALL">All Classes</option>
-                                <option value="KG 1">KG 1</option>
-                                <option value="KG 2">KG 2</option>
-                                <option value="Basic 1">Basic 1</option>
-                                <option value="Basic 2">Basic 2</option>
-                                <option value="Basic 3">Basic 3</option>
-                                <option value="Basic 4">Basic 4</option>
-                                <option value="Basic 5">Basic 5</option>
-                                <option value="Basic 6">Basic 6</option>
-                            </select>
-                            <button class="btn" onclick="openModal('examModal')"><i class="fa-solid fa-plus"></i> Enter Score</button>
+                <div id="examsProtectedContent" style="display: none;">
+                    <div class="panel">
+                        <div class="panel-header">
+                            <h2>Record Examination Scores</h2>
+                            <div class="filter-group">
+                                <label style="margin:0; font-weight: 600;">Filter Class:</label>
+                                <select id="filterExamClass" style="margin:0; width: auto;" onchange="renderExams()">
+                                    <option value="ALL">All Classes</option>
+                                    <option value="KG 1">KG 1</option>
+                                    <option value="KG 2">KG 2</option>
+                                    <option value="Basic 1">Basic 1</option>
+                                    <option value="Basic 2">Basic 2</option>
+                                    <option value="Basic 3">Basic 3</option>
+                                    <option value="Basic 4">Basic 4</option>
+                                    <option value="Basic 5">Basic 5</option>
+                                    <option value="Basic 6">Basic 6</option>
+                                </select>
+                                <button class="btn" onclick="openModal('examModal')"><i class="fa-solid fa-plus"></i> Enter Score</button>
+                            </div>
                         </div>
-                    </div>
-                    <div class="table-responsive">
-                        <table id="examTable">
-                            <thead>
-                                <tr>
-                                    <th>Student ID</th>
-                                    <th>Student Name</th>
-                                    <th>Subject</th>
-                                    <th>Class (30%)</th>
-                                    <th>Exam (70%)</th>
-                                    <th>Total (100%)</th>
-                                    <th>Grade</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody></tbody>
-                        </table>
+                        <div class="table-responsive">
+                            <table id="examTable">
+                                <thead>
+                                    <tr>
+                                        <th>Student ID</th>
+                                        <th>Student Name</th>
+                                        <th>Subject</th>
+                                        <th>Class (30%)</th>
+                                        <th>Exam (70%)</th>
+                                        <th>Total (100%)</th>
+                                        <th>Grade</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -799,6 +962,14 @@
                 <div class="panel">
                     <div class="panel-header"><h2>Post Announcement</h2></div>
                     <form onsubmit="addNotice(event)">
+                        <div style="background: #f8f9fa; border: 1px dashed var(--primary); padding: 12px; border-radius: 6px; margin-bottom: 15px;">
+                            <h4 style="color: var(--primary); font-size: 0.85rem; margin-bottom: 8px;"><i class="fa-solid fa-lock"></i> Teacher Authorization Required</h4>
+                            <div style="display: flex; gap: 10px;">
+                                <input type="text" id="noticeStaffId" placeholder="Staff ID (e.g. #T-01)" required style="margin: 0;">
+                                <input type="text" id="noticeStaffPhone" placeholder="Registered Phone Number" required style="margin: 0;">
+                            </div>
+                        </div>
+
                         <label>Notice Title</label>
                         <input type="text" id="noticeTitle" required placeholder="Title">
                         <label>Message</label>
@@ -809,6 +980,83 @@
                 <div class="panel">
                     <h2>Active Notices</h2>
                     <div id="noticeList" style="margin-top: 15px;"></div>
+                </div>
+            </div>
+
+            <!-- PARENT PORTAL / RESULTS CHECKER TAB -->
+            <div id="parentportal" class="tab-content">
+                <div id="parentSearchArea" class="parent-search-card">
+                    <i class="fa-solid fa-graduation-cap fa-3x" style="color: var(--primary); margin-bottom: 15px;"></i>
+                    <h2 style="color: var(--primary); margin-bottom: 10px;">Check Ward's Terminal Results</h2>
+                    <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 20px;">Enter your ward's Student ID and the guardian phone number registered with the school.</p>
+                    
+                    <form onsubmit="checkWardResults(event)">
+                        <div style="text-align: left;">
+                            <label><strong>Student ID</strong></label>
+                            <input type="text" id="parentStuId" required placeholder="e.g. #ZRC-001">
+                            
+                            <label><strong>Guardian Phone Number</strong></label>
+                            <input type="text" id="parentPhone" required placeholder="e.g. 024XXXXXXX">
+
+                            <label><strong>Academic Term</strong></label>
+                            <select id="parentTerm">
+                                <option>Term 1 - 2026</option>
+                                <option>Term 2 - 2026</option>
+                                <option>Term 3 - 2026</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn" style="width: 100%; justify-content: center; margin-top: 10px; padding: 12px;"><i class="fa-solid fa-search"></i> Check Results</button>
+                    </form>
+                </div>
+
+                <!-- SINGLE WARD REPORT DISPLAY -->
+                <div id="wardReportResult" style="display: none;">
+                    <div class="panel no-print" style="display: flex; justify-content: space-between; align-items: center;">
+                        <button class="btn btn-edit" onclick="resetParentPortal()"><i class="fa-solid fa-arrow-left"></i> Check Another Result</button>
+                        <button class="btn" onclick="window.print()"><i class="fa-solid fa-print"></i> Print Result Sheet</button>
+                    </div>
+
+                    <div class="report-card-container">
+                        <div class="report-header">
+                            <h2>ZANGBALUN R/C PRIMARY SCHOOL</h2>
+                            <p style="color: var(--secondary); font-weight: bold;">FAITH • LEARN • SERVE</p>
+                            <h3 style="margin-top: 15px; text-decoration: underline; color: var(--primary);">STUDENT TERMINAL REPORT CARD</h3>
+                        </div>
+
+                        <div class="student-meta-grid">
+                            <div><strong>Student Name:</strong> <span id="wardName">---</span></div>
+                            <div><strong>Student ID:</strong> <span id="wardId">---</span></div>
+                            <div><strong>Class:</strong> <span id="wardClass">---</span></div>
+                            <div><strong>Academic Term:</strong> <span id="wardTerm">Term 1 - 2026</span></div>
+                        </div>
+
+                        <div class="table-responsive">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Subject</th>
+                                        <th>Class Mark (30)</th>
+                                        <th>Exam Mark (70)</th>
+                                        <th>Total Mark (100)</th>
+                                        <th>Grade</th>
+                                        <th>Remarks</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="wardScoresBody"></tbody>
+                            </table>
+                        </div>
+
+                        <div style="margin-top: 30px; display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                            <div>
+                                <p><strong>Class Teacher's Remarks:</strong></p>
+                                <p style="border-bottom: 1px dotted #000; padding-top: 5px;">A hard-working and disciplined pupil.</p>
+                            </div>
+                            <div>
+                                <p><strong>Headteacher's Signature:</strong></p>
+                                <p style="border-bottom: 1px dotted #000; padding-top: 25px;"></p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -979,20 +1227,27 @@
         const db = firebase.database();
 
         let globalStudents = {};
+        let globalTeachers = {};
         let globalExams = {};
         let globalAttendance = {};
         let globalExamBank = {};
+
+        // TEACHER AUTHENTICATION STATE
+        let authenticatedTeacher = null;
+        const PROTECTED_TABS = ['students', 'teachers', 'attendance', 'exams'];
+        let currentActiveTab = 'dashboard';
 
         const ALL_CLASSES = ["KG 1", "KG 2", "Basic 1", "Basic 2", "Basic 3", "Basic 4", "Basic 5", "Basic 6"];
 
         document.getElementById('attnDate').valueAsDate = new Date();
 
         function switchTab(tabId, element) {
+            currentActiveTab = tabId;
             document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
             document.querySelectorAll('.nav-links li').forEach(item => item.classList.remove('active'));
 
             document.getElementById(tabId).classList.add('active');
-            element.classList.add('active');
+            if (element) element.classList.add('active');
 
             const titleMap = {
                 'dashboard': 'Dashboard Overview',
@@ -1002,19 +1257,109 @@
                 'exams': 'Exams & Marks',
                 'exambank': 'Exam Questions Bank',
                 'reports': 'Student Report Cards',
-                'announcements': 'School Announcements'
+                'announcements': 'School Announcements',
+                'parentportal': 'Parent Results Portal'
             };
             document.getElementById('page-title').innerText = titleMap[tabId];
 
             const sidebar = document.getElementById('sidebar');
             if (sidebar.classList.contains('active')) sidebar.classList.remove('active');
 
-            if (tabId === 'attendance') loadClassAttendance();
+            checkProtectedTabAccess(tabId);
+
+            if (tabId === 'attendance' && authenticatedTeacher) loadClassAttendance();
+        }
+
+        function checkProtectedTabAccess(tabId) {
+            const authContainer = document.getElementById('teacherAuthContainer');
+            
+            if (PROTECTED_TABS.includes(tabId) && !authenticatedTeacher) {
+                // Show verification portal and hide raw list contents
+                authContainer.style.display = 'block';
+                PROTECTED_TABS.forEach(t => {
+                    const el = document.getElementById(t + 'ProtectedContent');
+                    if (el) el.style.display = 'none';
+                });
+            } else {
+                authContainer.style.display = 'none';
+                if (authenticatedTeacher && PROTECTED_TABS.includes(tabId)) {
+                    const el = document.getElementById(tabId + 'ProtectedContent');
+                    if (el) el.style.display = 'block';
+                }
+            }
         }
 
         function toggleSidebar() { document.getElementById('sidebar').classList.toggle('active'); }
         function openModal(id) { document.getElementById(id).style.display = 'flex'; }
         function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+
+        // VERIFY IF USER IS A VALID TEACHER
+        function findMatchingTeacher(staffIdInput, phoneInput) {
+            const sId = (staffIdInput || '').trim().toLowerCase();
+            const phone = (phoneInput || '').trim();
+
+            if (!sId || !phone) return null;
+
+            for (let key in globalTeachers) {
+                const t = globalTeachers[key];
+                const tId = (t.teachId || '').trim().toLowerCase();
+                const tPhone = (t.teachContact || '').trim();
+
+                if (tId === sId && tPhone === phone) {
+                    return t;
+                }
+            }
+            return null;
+        }
+
+        function handlePortalVerification(e) {
+            e.preventDefault();
+            const staffId = document.getElementById('authPortalStaffId').value;
+            const phone = document.getElementById('authPortalPhone').value;
+
+            // If system has zero teachers, bootstrap initial access
+            if (Object.keys(globalTeachers).length === 0) {
+                authenticatedTeacher = { teachName: "Admin Staff", teachId: staffId };
+            } else {
+                const match = findMatchingTeacher(staffId, phone);
+                if (match) {
+                    authenticatedTeacher = match;
+                } else {
+                    alert("Access Denied! Your Staff ID or Phone Number is not in the Teachers database.");
+                    return;
+                }
+            }
+
+            // Update Header User Profile & Session Display
+            document.getElementById('activeUserRole').innerText = authenticatedTeacher.teachName;
+            document.getElementById('activeUserSub').innerText = `Teacher ID: ${authenticatedTeacher.teachId}`;
+            
+            document.getElementById('sessionTeacherName').innerText = authenticatedTeacher.teachName;
+            document.getElementById('sessionTeacherId').innerText = authenticatedTeacher.teachId;
+            document.getElementById('teacherSessionBanner').style.display = 'flex';
+
+            // Unlock Protected Contents
+            document.getElementById('teacherAuthContainer').style.display = 'none';
+            PROTECTED_TABS.forEach(t => {
+                const el = document.getElementById(t + 'ProtectedContent');
+                if (el) el.style.display = 'block';
+            });
+
+            // Refresh protected views
+            renderStudents();
+            renderExams();
+            if (currentActiveTab === 'attendance') loadClassAttendance();
+
+            e.target.reset();
+        }
+
+        function logoutTeacherSession() {
+            authenticatedTeacher = null;
+            document.getElementById('activeUserRole').innerText = "Visitor / Parent";
+            document.getElementById('activeUserSub').innerText = "Authentication Required for Staff Data";
+            document.getElementById('teacherSessionBanner').style.display = 'none';
+            checkProtectedTabAccess(currentActiveTab);
+        }
 
         // REALTIME DATABASE LISTENERS
         db.ref('students').on('value', (snapshot) => {
@@ -1025,13 +1370,13 @@
         });
 
         db.ref('teachers').on('value', (snapshot) => {
-            const data = snapshot.val() || {};
+            globalTeachers = snapshot.val() || {};
             const tbody = document.querySelector('#teacherTable tbody');
             tbody.innerHTML = '';
             let count = 0;
-            for (let key in data) {
+            for (let key in globalTeachers) {
                 count++;
-                const t = data[key];
+                const t = globalTeachers[key];
                 tbody.innerHTML += `
                     <tr id="row-teacher-${key}">
                         <td class="cell-teachId">${t.teachId}</td>
@@ -1060,7 +1405,7 @@
 
         db.ref('attendance').on('value', (snapshot) => {
             globalAttendance = snapshot.val() || {};
-            loadClassAttendance();
+            if (authenticatedTeacher) loadClassAttendance();
         });
 
         db.ref('announcements').on('value', (snapshot) => {
@@ -1132,8 +1477,9 @@
             });
         }
 
-        // RENDER STUDENTS (WITH CLASS FILTER)
+        // RENDER STUDENTS (PROTECTED VIEW)
         function renderStudents() {
+            if (!authenticatedTeacher) return;
             const selectedClass = document.getElementById('filterStudentClass').value;
             const tbody = document.querySelector('#studentTable tbody');
             tbody.innerHTML = '';
@@ -1157,8 +1503,9 @@
             }
         }
 
-        // RENDER EXAMS (WITH CLASS FILTER)
+        // RENDER EXAMS (PROTECTED VIEW)
         function renderExams() {
+            if (!authenticatedTeacher) return;
             const selectedClass = document.getElementById('filterExamClass').value;
             const tbody = document.querySelector('#examTable tbody');
             tbody.innerHTML = '';
@@ -1235,6 +1582,8 @@
 
         // LOAD & MARK CLASS ATTENDANCE
         function loadClassAttendance() {
+            if (!authenticatedTeacher) return;
+
             const date = document.getElementById('attnDate').value;
             const selectedClass = document.getElementById('attnClassSelect').value;
             const tbody = document.getElementById('attendanceTableBody');
@@ -1275,6 +1624,8 @@
         }
 
         function markAttendance(studentKey, status) {
+            if (!authenticatedTeacher) return alert("Teacher authentication required.");
+
             const date = document.getElementById('attnDate').value;
             if (!date) return alert('Please select a date first');
 
@@ -1288,6 +1639,8 @@
 
         // EDIT IN-LINE HANDLER
         function toggleEditRow(button, category, key) {
+            if (!authenticatedTeacher) return alert("Teacher authentication required.");
+
             const row = button.parentElement.parentElement;
             const cells = row.querySelectorAll('td:not(:last-child)');
             const isEditing = button.innerText.trim().includes('Save');
@@ -1351,6 +1704,8 @@
         // WRITE ACTIONS
         function addStudent(e) {
             e.preventDefault();
+            if (!authenticatedTeacher) return alert("Teacher authentication required.");
+
             db.ref('students').push({
                 stuId: document.getElementById('stuId').value,
                 stuName: document.getElementById('stuName').value,
@@ -1364,6 +1719,8 @@
 
         function addTeacher(e) {
             e.preventDefault();
+            if (!authenticatedTeacher) return alert("Teacher authentication required.");
+
             db.ref('teachers').push({
                 teachId: document.getElementById('teachId').value,
                 teachName: document.getElementById('teachName').value,
@@ -1376,6 +1733,8 @@
 
         function addExamScore(e) {
             e.preventDefault();
+            if (!authenticatedTeacher) return alert("Teacher authentication required.");
+
             const studentKey = document.getElementById('examStuSelect').value;
             const student = globalStudents[studentKey];
             if (!student) return alert('Select a student first');
@@ -1403,12 +1762,13 @@
 
         function uploadExamPaper(e) {
             e.preventDefault();
+            if (!authenticatedTeacher) return alert("Teacher authentication required.");
+
             const fileInput = document.getElementById('paperFile');
             const file = fileInput.files[0];
 
             if (!file) return alert('Please select a file to upload');
 
-            // Limit file size to ~3MB to ensure light storage in Firebase RTDB
             if (file.size > 3 * 1024 * 1024) {
                 return alert('File size is too large. Please select a file smaller than 3MB.');
             }
@@ -1448,6 +1808,13 @@
 
         function addNotice(e) {
             e.preventDefault();
+            const staffId = document.getElementById('noticeStaffId').value;
+            const phone = document.getElementById('noticeStaffPhone').value;
+
+            if (Object.keys(globalTeachers).length > 0 && !findMatchingTeacher(staffId, phone)) {
+                return alert("Access Denied! Only registered teachers can post announcements.");
+            }
+
             db.ref('announcements').push({
                 title: document.getElementById('noticeTitle').value,
                 body: document.getElementById('noticeBody').value
@@ -1456,10 +1823,12 @@
         }
 
         function deleteFirebaseItem(path) {
+            if (!authenticatedTeacher) return alert("Teacher authentication required.");
+
             if (confirm("Are you sure you want to delete this item?")) db.ref(path).remove();
         }
 
-        // GENERATE REPORT CARD
+        // GENERATE REPORT CARD (ADMIN VIEW)
         function generateReportCard() {
             const studentKey = document.getElementById('reportStudentSelect').value;
             const term = document.getElementById('reportTermSelect').value;
@@ -1507,6 +1876,79 @@
             if (!hasScores) {
                 tbody.innerHTML = '<tr><td colspan="6" style="text-align: center;">No exam scores recorded for this student yet.</td></tr>';
             }
+        }
+
+        // PARENT PORTAL RESULTS CHECKER
+        function checkWardResults(e) {
+            e.preventDefault();
+            const inputStuId = document.getElementById('parentStuId').value.trim().toLowerCase();
+            const inputPhone = document.getElementById('parentPhone').value.trim();
+            const selectedTerm = document.getElementById('parentTerm').value;
+
+            let targetStudentKey = null;
+            let targetStudent = null;
+
+            for (let key in globalStudents) {
+                const s = globalStudents[key];
+                const stuIdMatch = (s.stuId || '').trim().toLowerCase() === inputStuId;
+                const phoneMatch = (s.stuContact || '').trim() === inputPhone;
+
+                if (stuIdMatch && phoneMatch) {
+                    targetStudentKey = key;
+                    targetStudent = s;
+                    break;
+                }
+            }
+
+            if (!targetStudent) {
+                alert("Incorrect Student ID or Phone Number. Please check your details and try again.");
+                return;
+            }
+
+            document.getElementById('wardName').innerText = targetStudent.stuName;
+            document.getElementById('wardId').innerText = targetStudent.stuId;
+            document.getElementById('wardClass').innerText = targetStudent.stuClass;
+            document.getElementById('wardTerm').innerText = selectedTerm;
+
+            const tbody = document.getElementById('wardScoresBody');
+            tbody.innerHTML = '';
+            let hasScores = false;
+
+            for (let key in globalExams) {
+                const exam = globalExams[key];
+                if (exam.studentKey === targetStudentKey) {
+                    hasScores = true;
+                    let remark = 'Pass';
+                    if (exam.grade === 'A') remark = 'Excellent';
+                    else if (exam.grade === 'B') remark = 'Very Good';
+                    else if (exam.grade === 'C') remark = 'Good';
+                    else if (exam.grade === 'F') remark = 'Needs Improvement';
+
+                    tbody.innerHTML += `
+                        <tr>
+                            <td>${exam.subject}</td>
+                            <td>${exam.cScore}</td>
+                            <td>${exam.eScore}</td>
+                            <td>${exam.total}</td>
+                            <td>${exam.grade}</td>
+                            <td>${remark}</td>
+                        </tr>`;
+                }
+            }
+
+            if (!hasScores) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center;">No examination scores found for this term.</td></tr>';
+            }
+
+            document.getElementById('parentSearchArea').style.display = 'none';
+            document.getElementById('wardReportResult').style.display = 'block';
+        }
+
+        function resetParentPortal() {
+            document.getElementById('parentSearchArea').style.display = 'block';
+            document.getElementById('wardReportResult').style.display = 'none';
+            document.getElementById('parentStuId').value = '';
+            document.getElementById('parentPhone').value = '';
         }
     </script>
 </body>
