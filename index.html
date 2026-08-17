@@ -285,6 +285,7 @@
         .btn-delete { background-color: var(--danger); color: #fff; padding: 4px 10px; font-size: 0.8rem; }
         .btn-download { background-color: var(--primary); color: #fff; padding: 4px 10px; font-size: 0.8rem; }
         .btn-vet { background-color: #007bff; color: #fff; padding: 4px 10px; font-size: 0.8rem; }
+        .btn-promote-action { background-color: #2563eb; color: #fff; }
 
         .table-responsive {
             width: 100%;
@@ -442,6 +443,10 @@
         .boy-pill { background-color: rgba(0, 123, 255, 0.1); color: var(--boy-color); font-weight: bold; padding: 2px 8px; border-radius: 12px; }
         .girl-pill { background-color: rgba(232, 62, 140, 0.1); color: var(--girl-color); font-weight: bold; padding: 2px 8px; border-radius: 12px; }
 
+        /* Status Pills for Promotion */
+        .status-active { background-color: #dbeafe; color: #1e40af; font-weight: bold; padding: 2px 8px; border-radius: 12px; font-size: 0.8rem; }
+        .status-graduated { background-color: #dcfce7; color: #166534; font-weight: bold; padding: 2px 8px; border-radius: 12px; font-size: 0.8rem; }
+
         /* Parent Portal Search Box */
         .parent-search-card {
             max-width: 480px;
@@ -509,6 +514,7 @@
         <ul class="nav-links">
             <li class="active" onclick="switchTab('dashboard', this)"><a><i class="fa-solid fa-chart-line"></i> Dashboard</a></li>
             <li onclick="switchTab('students', this)"><a><i class="fa-solid fa-user-graduate"></i> Students Directory</a></li>
+            <li onclick="switchTab('promotion', this)"><a><i class="fa-solid fa-arrow-up-right-dots"></i> Student Promotion</a></li>
             <li onclick="switchTab('teachers', this)"><a><i class="fa-solid fa-chalkboard-user"></i> Teachers</a></li>
             <li onclick="switchTab('roster', this)"><a><i class="fa-solid fa-calendar-days"></i> Staff Roster</a></li>
             <li onclick="switchTab('lessonplans', this)"><a><i class="fa-solid fa-book-open"></i> Lesson Plans</a></li>
@@ -632,6 +638,7 @@
                                     <option value="Basic 1">Basic 1</option><option value="Basic 2">Basic 2</option>
                                     <option value="Basic 3">Basic 3</option><option value="Basic 4">Basic 4</option>
                                     <option value="Basic 5">Basic 5</option><option value="Basic 6">Basic 6</option>
+                                    <option value="Completed Primary">Completed Primary</option>
                                 </select>
                                 <button class="btn" onclick="openModal('studentModal')"><i class="fa-solid fa-plus"></i> Add Student</button>
                             </div>
@@ -650,6 +657,34 @@
                 </div>
             </div>
 
+            <!-- PROMOTION TAB (PROTECTED) -->
+            <div id="promotion" class="tab-content">
+                <div id="promotionProtectedContent" style="display: none;">
+                    <div class="panel">
+                        <div class="panel-header">
+                            <h2>End of Academic Year Student Promotion</h2>
+                            <button class="btn btn-promote-action" onclick="openModal('promotionModal')"><i class="fa-solid fa-arrow-up-right-dots"></i> Execute Bulk Promotion</button>
+                        </div>
+                        <p style="margin-bottom: 15px; color: var(--text-muted); font-size: 0.9rem;">
+                            Review student progression status. Confirm that all term assessments are finalized before promoting students to the next academic level.
+                        </p>
+                        <div class="table-responsive">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Student ID</th>
+                                        <th>Student Name</th>
+                                        <th>Current Class</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="promotionTableBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- TEACHERS TAB (PROTECTED) -->
             <div id="teachers" class="tab-content">
                 <div id="teachersProtectedContent" style="display: none;">
@@ -662,7 +697,7 @@
                             <table id="teacherTable">
                                 <thead>
                                     <tr>
-                                        <th>Staff ID</th><th>Name</th><th>Class Assigned</th><th>Contact</th><th>Actions</th>
+                                        <th>Staff ID</th><th>Name</th><th>Role</th><th>Class Assigned</th><th>Contact</th><th>Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody></tbody>
@@ -1010,7 +1045,27 @@
         </div>
     </div>
 
-    <!-- MODAL: ADD TEACHER -->
+    <!-- MODAL: PROMOTIONS CONFIRMATION -->
+    <div id="promotionModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-triangle-exclamation" style="color: var(--accent);"></i> Confirm Class Promotion</h3>
+                <span class="close-btn" onclick="closeModal('promotionModal')">&times;</span>
+            </div>
+            <p style="margin-bottom: 12px; font-size: 0.9rem;">
+                This action will advance all active students in <strong>KG 1 through Basic 6</strong> to their next academic grade level.
+            </p>
+            <div style="background-color: #fef3c7; color: #92400e; padding: 10px; border-radius: 6px; font-size: 0.85rem; margin-bottom: 15px;">
+                ⚠️ <strong>Notice:</strong> Basic 6 pupils will be updated to status <em>Completed Primary</em>.
+            </div>
+            <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                <button class="btn btn-delete" onclick="closeModal('promotionModal')">Cancel</button>
+                <button class="btn btn-promote-action" id="btnRunPromotion" onclick="runBatchPromotion()"><i class="fa-solid fa-check"></i> Execute Promotion</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: ADD TEACHER WITH ROLES -->
     <div id="teacherModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
@@ -1019,11 +1074,23 @@
             <form onsubmit="addTeacher(event)">
                 <label>Staff ID</label><input type="text" id="teachId" required placeholder="#T-01">
                 <label>Full Name</label><input type="text" id="teachName" required placeholder="Teacher's Name">
-                <label>Class Assigned</label>
-                <select id="teachClass">
-                    <option>KG 1</option><option>KG 2</option><option>Basic 1</option><option>Basic 2</option>
-                    <option>Basic 3</option><option>Basic 4</option><option>Basic 5</option><option>Basic 6</option>
+                <label>Role</label>
+                <select id="teachRole" required onchange="toggleTeacherModalClass(this.value)">
+                    <option value="" disabled selected>Select Role</option>
+                    <option value="Headteacher">Headteacher</option>
+                    <option value="Class Teacher">Class Teacher</option>
+                    <option value="Subject Teacher">Subject Teacher</option>
+                    <option value="Assistant Teacher">Assistant Teacher</option>
+                    <option value="Non-Teaching">Non-Teaching Staff</option>
                 </select>
+                <div id="modalClassGroup">
+                    <label>Class Assigned</label>
+                    <select id="teachClass">
+                        <option value="N/A">None / Unassigned</option>
+                        <option>KG 1</option><option>KG 2</option><option>Basic 1</option><option>Basic 2</option>
+                        <option>Basic 3</option><option>Basic 4</option><option>Basic 5</option><option>Basic 6</option>
+                    </select>
+                </div>
                 <label>Contact</label><input type="text" id="teachContact" required placeholder="020XXXXXXX">
                 <button type="submit" class="btn" style="width: 100%;">Save Teacher</button>
             </form>
@@ -1176,10 +1243,11 @@
 
         // TEACHER AUTHENTICATION STATE
         let authenticatedTeacher = null;
-        const PROTECTED_TABS = ['students', 'teachers', 'roster', 'lessonplans', 'attendance', 'exams', 'reports'];
+        const PROTECTED_TABS = ['students', 'promotion', 'teachers', 'roster', 'lessonplans', 'attendance', 'exams', 'reports'];
         let currentActiveTab = 'dashboard';
 
         const ALL_CLASSES = ["KG 1", "KG 2", "Basic 1", "Basic 2", "Basic 3", "Basic 4", "Basic 5", "Basic 6"];
+        const PROMOTION_SEQUENCE = ["KG 1", "KG 2", "Basic 1", "Basic 2", "Basic 3", "Basic 4", "Basic 5", "Basic 6", "Completed Primary"];
 
         document.getElementById('attnDate').valueAsDate = new Date();
 
@@ -1194,6 +1262,7 @@
             const titleMap = {
                 'dashboard': 'Dashboard Overview',
                 'students': 'Students Directory',
+                'promotion': 'End of Year Promotion',
                 'teachers': 'Teachers Directory',
                 'roster': 'Weekly Staff Duty Roster',
                 'lessonplans': 'Lesson Plan Submissions',
@@ -1236,6 +1305,11 @@
         function openModal(id) { document.getElementById(id).style.display = 'flex'; }
         function closeModal(id) { document.getElementById(id).style.display = 'none'; }
 
+        function toggleTeacherModalClass(role) {
+            const classGroup = document.getElementById('modalClassGroup');
+            classGroup.style.display = (role === 'Class Teacher' || role === 'Assistant Teacher') ? 'block' : 'none';
+        }
+
         function findMatchingTeacher(staffIdInput, phoneInput) {
             const sId = (staffIdInput || '').trim().toLowerCase();
             const phone = (phoneInput || '').trim();
@@ -1258,7 +1332,7 @@
             const phone = document.getElementById('authPortalPhone').value;
 
             if (Object.keys(globalTeachers).length === 0) {
-                authenticatedTeacher = { teachName: "Admin Staff", teachId: staffId };
+                authenticatedTeacher = { teachName: "Admin Staff", teachId: staffId, teachRole: "Administrator" };
             } else {
                 const match = findMatchingTeacher(staffId, phone);
                 if (match) {
@@ -1269,7 +1343,7 @@
                 }
             }
 
-            document.getElementById('activeUserRole').innerText = authenticatedTeacher.teachName;
+            document.getElementById('activeUserRole').innerText = `${authenticatedTeacher.teachName} (${authenticatedTeacher.teachRole || 'Staff'})`;
             document.getElementById('activeUserSub').innerText = `Teacher ID: ${authenticatedTeacher.teachId}`;
             
             document.getElementById('sessionTeacherName').innerText = authenticatedTeacher.teachName;
@@ -1283,6 +1357,7 @@
             });
 
             renderStudents();
+            renderPromotionTable();
             renderExams();
             renderRoster();
             renderLessonPlans();
@@ -1304,6 +1379,7 @@
         db.ref('students').on('value', (snapshot) => {
             globalStudents = snapshot.val() || {};
             renderStudents();
+            renderPromotionTable();
             updateStudentDropdowns();
             renderDashboardStats();
         });
@@ -1323,6 +1399,7 @@
                     <tr id="row-teacher-${key}">
                         <td class="cell-teachId">${t.teachId}</td>
                         <td class="cell-teachName">${t.teachName}</td>
+                        <td class="cell-teachRole"><strong>${t.teachRole || 'Class Teacher'}</strong></td>
                         <td class="cell-teachClass">${t.teachClass}</td>
                         <td class="cell-teachContact">${t.teachContact}</td>
                         <td>
@@ -1385,6 +1462,8 @@
 
             for (let key in globalStudents) {
                 const s = globalStudents[key];
+                if (s.stuClass === 'Completed Primary') continue;
+
                 totalStudents++;
                 const gender = (s.stuGender || '').toLowerCase();
                 const cls = s.stuClass;
@@ -1439,6 +1518,75 @@
                             </td>
                         </tr>`;
                 }
+            }
+        }
+
+        // RENDER PROMOTION TABLE
+        function renderPromotionTable() {
+            if (!authenticatedTeacher) return;
+            const tbody = document.getElementById('promotionTableBody');
+            tbody.innerHTML = '';
+
+            let count = 0;
+            for (let key in globalStudents) {
+                count++;
+                const s = globalStudents[key];
+                const isGraduated = s.stuClass === 'Completed Primary';
+
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${s.stuId}</td>
+                        <td><strong>${s.stuName}</strong></td>
+                        <td>${s.stuClass}</td>
+                        <td>
+                            <span class="${isGraduated ? 'status-graduated' : 'status-active'}">
+                                ${isGraduated ? 'Completed Primary' : 'Active'}
+                            </span>
+                        </td>
+                    </tr>`;
+            }
+
+            if (count === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" style="text-align: center;">No student records available for promotion.</td></tr>';
+            }
+        }
+
+        // BATCH PROMOTION EXECUTION
+        async function runBatchPromotion() {
+            if (!authenticatedTeacher) return alert("Teacher authentication required.");
+
+            const confirmBtn = document.getElementById('btnRunPromotion');
+            confirmBtn.disabled = true;
+            confirmBtn.innerText = "Processing...";
+
+            try {
+                const updates = {};
+                let promotedCount = 0;
+
+                for (let key in globalStudents) {
+                    const s = globalStudents[key];
+                    const currentIndex = PROMOTION_SEQUENCE.indexOf(s.stuClass);
+
+                    if (currentIndex !== -1 && currentIndex < PROMOTION_SEQUENCE.length - 1) {
+                        const nextClass = PROMOTION_SEQUENCE[currentIndex + 1];
+                        updates[`students/${key}/stuClass`] = nextClass;
+                        promotedCount++;
+                    }
+                }
+
+                if (Object.keys(updates).length > 0) {
+                    await db.ref().update(updates);
+                    alert(`Successfully promoted ${promotedCount} students!`);
+                } else {
+                    alert("No eligible students found to promote.");
+                }
+
+                closeModal('promotionModal');
+            } catch (error) {
+                alert("Error carrying out promotion: " + error.message);
+            } finally {
+                confirmBtn.disabled = false;
+                confirmBtn.innerHTML = '<i class="fa-solid fa-check"></i> Execute Promotion';
             }
         }
 
@@ -1780,6 +1928,7 @@
                     updateData = {
                         teachId: getCellValue(row.querySelector('.cell-teachId')),
                         teachName: getCellValue(row.querySelector('.cell-teachName')),
+                        teachRole: getCellValue(row.querySelector('.cell-teachRole')),
                         teachClass: getCellValue(row.querySelector('.cell-teachClass')),
                         teachContact: getCellValue(row.querySelector('.cell-teachContact'))
                     };
@@ -1835,10 +1984,16 @@
             e.preventDefault();
             if (!authenticatedTeacher) return alert("Teacher authentication required.");
 
+            const role = document.getElementById('teachRole').value;
+            const assignedClass = (role === 'Class Teacher' || role === 'Assistant Teacher') 
+                ? document.getElementById('teachClass').value 
+                : 'N/A';
+
             db.ref('teachers').push({
                 teachId: document.getElementById('teachId').value,
                 teachName: document.getElementById('teachName').value,
-                teachClass: document.getElementById('teachClass').value,
+                teachRole: role,
+                teachClass: assignedClass,
                 teachContact: document.getElementById('teachContact').value
             });
             closeModal('teacherModal');
