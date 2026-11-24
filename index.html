@@ -622,6 +622,50 @@
                         </table>
                     </div>
                 </div>
+
+                <div class="panel">
+                    <div class="panel-header">
+                        <h2><i class="fa-solid fa-clipboard-check"></i> Daily Attendance Summary</h2>
+                        <div class="filter-group">
+                            <label style="margin:0; font-weight: 600;">Date:</label>
+                            <input type="date" id="dashboardAttnDate" style="margin:0; width: auto;" onchange="renderDashboardAttendanceSummary()">
+                        </div>
+                    </div>
+                    <div class="cards-grid" style="margin-bottom: 20px;">
+                        <div class="card" style="border-bottom-color: #28a745; padding: 15px;">
+                            <div class="card-info"><p>Present Today</p><h3 id="dash-attn-present" style="color: #28a745;">0</h3></div>
+                            <div class="card-icon" style="background-color: rgba(40, 167, 69, 0.1); color: #28a745;"><i class="fa-solid fa-user-check"></i></div>
+                        </div>
+                        <div class="card" style="border-bottom-color: #dc3545; padding: 15px;">
+                            <div class="card-info"><p>Absent Today</p><h3 id="dash-attn-absent" style="color: #dc3545;">0</h3></div>
+                            <div class="card-icon" style="background-color: rgba(220, 53, 69, 0.1); color: #dc3545;"><i class="fa-solid fa-user-xmark"></i></div>
+                        </div>
+                        <div class="card" style="border-bottom-color: #ffc107; padding: 15px;">
+                            <div class="card-info"><p>Late Today</p><h3 id="dash-attn-late" style="color: #d97706;">0</h3></div>
+                            <div class="card-icon" style="background-color: rgba(255, 193, 7, 0.15); color: #d97706;"><i class="fa-solid fa-clock"></i></div>
+                        </div>
+                        <div class="card" style="border-bottom-color: var(--primary); padding: 15px;">
+                            <div class="card-info"><p>Attendance Rate</p><h3 id="dash-attn-rate">0%</h3></div>
+                            <div class="card-icon"><i class="fa-solid fa-chart-pie"></i></div>
+                        </div>
+                    </div>
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Class Level</th>
+                                    <th><span class="badge-present">Present</span></th>
+                                    <th><span class="badge-absent">Absent</span></th>
+                                    <th><span class="badge-late">Late</span></th>
+                                    <th>Unmarked</th>
+                                    <th>Class Total</th>
+                                    <th>Rate</th>
+                                </tr>
+                            </thead>
+                            <tbody id="dashboardAttnTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
 
             <!-- STUDENTS TAB (PROTECTED) -->
@@ -1250,6 +1294,7 @@
         const PROMOTION_SEQUENCE = ["KG 1", "KG 2", "Basic 1", "Basic 2", "Basic 3", "Basic 4", "Basic 5", "Basic 6", "Completed Primary"];
 
         document.getElementById('attnDate').valueAsDate = new Date();
+        document.getElementById('dashboardAttnDate').valueAsDate = new Date();
 
         function switchTab(tabId, element) {
             currentActiveTab = tabId;
@@ -1382,6 +1427,7 @@
             renderPromotionTable();
             updateStudentDropdowns();
             renderDashboardStats();
+            renderDashboardAttendanceSummary();
         });
 
         db.ref('teachers').on('value', (snapshot) => {
@@ -1435,6 +1481,7 @@
 
         db.ref('attendance').on('value', (snapshot) => {
             globalAttendance = snapshot.val() || {};
+            renderDashboardAttendanceSummary();
             if (authenticatedTeacher) loadClassAttendance();
         });
 
@@ -1492,6 +1539,73 @@
                         <td><span class="boy-pill">${stats.boys}</span></td>
                         <td><span class="girl-pill">${stats.girls}</span></td>
                         <td><strong>${stats.total}</strong></td>
+                    </tr>`;
+            });
+        }
+
+        function renderDashboardAttendanceSummary() {
+            const dateInput = document.getElementById('dashboardAttnDate');
+            const selectedDate = dateInput ? dateInput.value : new Date().toISOString().split('T')[0];
+
+            let totalPresent = 0, totalAbsent = 0, totalLate = 0, totalActiveStudents = 0;
+            let classAttn = {};
+            ALL_CLASSES.forEach(cls => {
+                classAttn[cls] = { present: 0, absent: 0, late: 0, unmarked: 0, total: 0 };
+            });
+
+            for (let key in globalStudents) {
+                const s = globalStudents[key];
+                if (s.stuClass === 'Completed Primary') continue;
+
+                const cls = s.stuClass;
+                if (!classAttn[cls]) continue;
+
+                totalActiveStudents++;
+                classAttn[cls].total++;
+
+                const attnKey = `${selectedDate}_${key}`;
+                const record = globalAttendance[attnKey];
+                const status = record ? record.status : 'Not Marked';
+
+                if (status === 'Present') {
+                    totalPresent++;
+                    classAttn[cls].present++;
+                } else if (status === 'Absent') {
+                    totalAbsent++;
+                    classAttn[cls].absent++;
+                } else if (status === 'Late') {
+                    totalLate++;
+                    classAttn[cls].late++;
+                } else {
+                    classAttn[cls].unmarked++;
+                }
+            }
+
+            const attendedCount = totalPresent + totalLate;
+            const overallRate = totalActiveStudents > 0 ? Math.round((attendedCount / totalActiveStudents) * 100) : 0;
+
+            document.getElementById('dash-attn-present').innerText = totalPresent;
+            document.getElementById('dash-attn-absent').innerText = totalAbsent;
+            document.getElementById('dash-attn-late').innerText = totalLate;
+            document.getElementById('dash-attn-rate').innerText = overallRate + '%';
+
+            const tbody = document.getElementById('dashboardAttnTableBody');
+            tbody.innerHTML = '';
+
+            ALL_CLASSES.forEach(cls => {
+                const c = classAttn[cls];
+                const clsAttended = c.present + c.late;
+                const clsRate = c.total > 0 ? Math.round((clsAttended / c.total) * 100) : 0;
+
+                tbody.innerHTML += `
+                    <tr>
+                        <td><strong>${cls}</strong></td>
+                        <td><span class="badge-present">${c.present}</span></td>
+                        <td><span class="badge-absent">${c.absent}</span></td>
+                        <td><span class="badge-late">${c.late}</span></td>
+                        <td style="color: var(--text-muted);">${c.unmarked}</td>
+                        <td><strong>${c.total}</strong></td>
+                        <td><strong>${clsRate}%</strong></td>
                     </tr>`;
             });
         }
